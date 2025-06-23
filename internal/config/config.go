@@ -9,14 +9,15 @@ import (
 
 type Config struct {
 	Server struct {
-		Port    int
-		BaseURL string
+		Port    int    `mapstructure:"port"`
+		BaseURL string `mapstructure:"base_url"`
 	} `mapstructure:"server"`
 	Database struct {
 		Name string `mapstructure:"name"`
 	} `mapstructure:"database"`
 	Analytics struct {
-		BufferSize int `mapstructure:"buffer_size"`
+		BufferSize  int `mapstructure:"buffer_size"`
+		WorkerCount int `mapstructure:"worker_count"`
 	} `mapstructure:"analytics"`
 	Monitor struct {
 		IntervalMinutes int `mapstructure:"interval_minutes"`
@@ -29,7 +30,7 @@ func LoadConfig() (*Config, error) {
 
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
-	viper.AddConfigPath("./config")
+	viper.AddConfigPath("./configs")
 	viper.SetConfigType("yaml")
 
 	viper.SetDefault("server.port", 8080)

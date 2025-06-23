@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/axellelanca/urlshortener/cmd"
-	cmd2 "github.com/axellelanca/urlshortener/cmd"
 	"github.com/axellelanca/urlshortener/internal/models"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/sqlite"
@@ -19,9 +18,9 @@ var MigrateCmd = &cobra.Command{
 	Long: `Cette commande se connecte à la base de données configurée (SQLite)
 et exécute les migrations automatiques de GORM pour créer les tables 'links' et 'clicks'
 basées sur les modèles Go.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmdm *cobra.Command, args []string) {
 		// Charger la configuration chargée globalement via cmd.GetConfig()
-		cfg := cmd2.GetConfig()
+		cfg := cmd.GetConfig()
 
 		// Initialiser la connexion à la base de données SQLite avec GORM.
 		var DB *gorm.DB
