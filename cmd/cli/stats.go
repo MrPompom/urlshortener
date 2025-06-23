@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	cmd2 "github.com/axellelanca/urlshortener/cmd"
+	"github.com/axellelanca/urlshortener/cmd"
 	"github.com/axellelanca/urlshortener/internal/repository"
 	"github.com/axellelanca/urlshortener/internal/services"
 	"github.com/spf13/cobra"
@@ -26,7 +26,7 @@ pour une URL courte spécifique en utilisant son code.
 
 Exemple:
   url-shortener stats --code="xyz123"`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmds *cobra.Command, args []string) {
 		// Valider que le flag --code a été fourni
 		if shortCodeFlag == "" {
 			fmt.Println("Erreur: Le flag --code est requis")
@@ -34,7 +34,7 @@ Exemple:
 		}
 
 		// Charger la configuration chargée globalement via cmd.GetConfig()
-		cfg := cmd2.GetConfig()
+		cfg := cmd.GetConfig()
 
 		// Initialiser la connexion à la base de données SQLite avec GORM
 		db, err := gorm.Open(sqlite.Open(cfg.Database.Name), &gorm.Config{})
@@ -81,5 +81,5 @@ func init() {
 	StatsCmd.MarkFlagRequired("code")
 
 	// Ajouter la commande à RootCmd
-	cmd2.RootCmd.AddCommand(StatsCmd)
+	cmd.RootCmd.AddCommand(StatsCmd)
 }

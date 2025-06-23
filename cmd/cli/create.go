@@ -6,7 +6,7 @@ import (
 	"net/url" // Pour valider le format de l'URL
 	"os"
 
-	cmd2 "github.com/axellelanca/urlshortener/cmd"
+	"github.com/axellelanca/urlshortener/cmd"
 	"github.com/axellelanca/urlshortener/internal/repository"
 	"github.com/axellelanca/urlshortener/internal/services"
 	"github.com/spf13/cobra"
@@ -25,7 +25,7 @@ var CreateCmd = &cobra.Command{
 
 Exemple:
   url-shortener create --url="https://www.google.com/search?q=go+lang"`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmdc *cobra.Command, args []string) {
 		// Valider que le flag --url a été fourni
 		if longURLFlag == "" {
 			fmt.Println("Erreur: Le flag --url est requis")
@@ -40,7 +40,7 @@ Exemple:
 		}
 
 		// Charger la configuration chargée globalement via cmd.GetConfig()
-		cfg := cmd2.GetConfig()
+		cfg := cmd.GetConfig()
 
 		// Initialiser la connexion à la base de données SQLite
 		db, err := gorm.Open(sqlite.Open(cfg.Database.Name), &gorm.Config{})
@@ -84,5 +84,5 @@ func init() {
 	CreateCmd.MarkFlagRequired("url")
 
 	// Ajouter la commande à RootCmd
-	cmd2.RootCmd.AddCommand(CreateCmd)
+	cmd.RootCmd.AddCommand(CreateCmd)
 }

@@ -11,9 +11,11 @@ import (
 
 	"github.com/axellelanca/urlshortener/cmd"
 	"github.com/axellelanca/urlshortener/internal/api"
+	"github.com/axellelanca/urlshortener/internal/models"
 	"github.com/axellelanca/urlshortener/internal/monitor"
 	"github.com/axellelanca/urlshortener/internal/repository"
 	"github.com/axellelanca/urlshortener/internal/services"
+	"github.com/axellelanca/urlshortener/internal/workers"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -25,7 +27,6 @@ import (
 // RunServerCmd représente la commande 'run-server' de Cobra.
 // C'est le point d'entrée pour lancer le serveur de l'application.
 var DB *gorm.DB
-var linkRepo *repository.GormLinkRepository
 
 var RunServerCmd = &cobra.Command{
 	Use:   "run-server",
@@ -60,16 +61,17 @@ var RunServerCmd = &cobra.Command{
 		// Créez des instances de LinkService et ClickService, en leur passant les repositories nécessaires.
 		// Laissez le log
 		linkService := services.NewLinkService(linkRepo)
-		clickService := services.NewClickService(clickRepo)
+		//clickService := services.NewClickService(clickRepo)
 		log.Println("Services métiers initialisés.")
 
 		// TODO : Initialiser le channel ClickEventsChannel (api/handlers) des événements de clic et lancer les workers (StartClickWorkers).
 		// Le channel est bufferisé avec la taille configurée.
 		// Passez le channel et le clickRepo aux workers.
-
+		api.ClickEventsChannel = make(chan models.ClickEvent, cmd.Cfg.Analytics.BufferSize)
+		go workers.StartClickWorkers(cmd.Cfg.Analytics.WorkerCount, api.ClickEventsChannel, clickRepo)
 		// TODO : Remplacer les XXX par les bonnes variables
 		log.Printf("Channel d'événements de clic initialisé avec un buffer de %d. %d worker(s) de clics démarré(s).",
-			XXX, XXX)
+			cmd.Cfg.Analytics.BufferSize, cmd.Cfg.Analytics.WorkerCount)
 
 		// TODO : Initialiser et lancer le moniteur d'URLs.
 		// Utilisez l'intervalle configuré (cfg.Monitor.IntervalMinutes).
