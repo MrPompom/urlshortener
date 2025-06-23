@@ -10,5 +10,5 @@ type Link struct {
 	ID        uint   `gorm:"primaryKey"`
 	Shortcode string `gorm:"unique;index;size:10"`
 	LongURL   string `gorm:"not null"`
-	CreatedAt int64
+	CreatedAt string
 }
