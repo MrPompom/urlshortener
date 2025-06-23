@@ -20,6 +20,8 @@ import (
 
 // RunServerCmd représente la commande 'run-server' de Cobra.
 // C'est le point d'entrée pour lancer le serveur de l'application.
+var DB *gorm.DB
+
 var RunServerCmd = &cobra.Command{
 	Use:   "run-server",
 	Short: "Lance le serveur API de raccourcissement d'URLs et les processus de fond.",
@@ -31,7 +33,6 @@ var RunServerCmd = &cobra.Command{
 			log.Fatalf("Configuration non chargée.")
 		}
 
-		var DB *gorm.DB
 		var err error
 
 		log.Printf("Tentative de connexion à la base de données : %s", cmd.Cfg.Database.Name)
