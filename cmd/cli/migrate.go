@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/axellelanca/urlshortener/cmd"
+	cmd2 "github.com/axellelanca/urlshortener/cmd"
 	"github.com/axellelanca/urlshortener/internal/models"
 	"github.com/spf13/cobra"
-	"gorm.io/driver/sqlite" // Driver SQLite pour GORM
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -20,17 +21,17 @@ et exécute les migrations automatiques de GORM pour créer les tables 'links' e
 basées sur les modèles Go.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Charger la configuration chargée globalement via cmd.GetConfig()
-		cfg := cmd.GetConfig()
+		cfg := cmd2.GetConfig()
 
 		// Initialiser la connexion à la base de données SQLite avec GORM.
 		var DB *gorm.DB
 		var err error
 
-		log.Printf("Tentative de connexion à la base de données : %s", cfg.Database.Path) // Correction: Path au lieu de Name
+		log.Printf("Tentative de connexion à la base de données : %s", cfg.Database.Name) // Correction: Path au lieu de Name
 
-		DB, err = gorm.Open(sqlite.Open(cfg.Database.Path), &gorm.Config{}) // Correction: Path au lieu de Name
+		DB, err = gorm.Open(sqlite.Open(cfg.Database.Name), &gorm.Config{}) // Correction: Path au lieu de Name
 		if err != nil {
-			log.Fatalf("Échec de la connexion à la base de données '%s': %v", cfg.Database.Path, err) // Correction: Path au lieu de Name
+			log.Fatalf("Échec de la connexion à la base de données '%s': %v", cfg.Database.Name, err) // Correction: Path au lieu de Name
 		}
 
 		log.Println("Connexion à la base de données SQLite réussie !")

@@ -37,9 +37,9 @@ Exemple:
 		cfg := cmd2.GetConfig()
 
 		// Initialiser la connexion à la base de données SQLite avec GORM
-		db, err := gorm.Open(sqlite.Open(cfg.Database.Path), &gorm.Config{})
+		db, err := gorm.Open(sqlite.Open(cfg.Database.Name), &gorm.Config{})
 		if err != nil {
-			log.Fatalf("Échec de la connexion à la base de données '%s': %v", cfg.Database.Path, err)
+			log.Fatalf("Échec de la connexion à la base de données '%s': %v", cfg.Database.Name, err)
 		}
 
 		sqlDB, err := db.DB()
@@ -52,7 +52,7 @@ Exemple:
 
 		// Initialiser les repositories et services nécessaires
 		linkRepo := repository.NewLinkRepository(db)
-		linkService := services.NewLinkService(linkRepo, cfg)
+		linkService := services.NewLinkService(linkRepo)
 
 		// Appeler GetLinkStats pour récupérer le lien et ses statistiques
 		link, totalClicks, err := linkService.GetLinkStats(shortCodeFlag)
@@ -65,7 +65,7 @@ Exemple:
 			os.Exit(1)
 		}
 
-		fmt.Printf("Statistiques pour le code court: %s\n", link.ShortCode)
+		fmt.Printf("Statistiques pour le code court: %s\n", link.Shortcode)
 		fmt.Printf("URL longue: %s\n", link.LongURL)
 		fmt.Printf("Total de clics: %d\n", totalClicks)
 	},

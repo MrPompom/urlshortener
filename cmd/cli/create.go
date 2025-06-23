@@ -43,9 +43,9 @@ Exemple:
 		cfg := cmd2.GetConfig()
 
 		// Initialiser la connexion à la base de données SQLite
-		db, err := gorm.Open(sqlite.Open(cfg.Database.Path), &gorm.Config{})
+		db, err := gorm.Open(sqlite.Open(cfg.Database.Name), &gorm.Config{})
 		if err != nil {
-			log.Fatalf("Échec de la connexion à la base de données '%s': %v", cfg.Database.Path, err)
+			log.Fatalf("Échec de la connexion à la base de données '%s': %v", cfg.Database.Name, err)
 		}
 
 		sqlDB, err := db.DB()
@@ -58,7 +58,7 @@ Exemple:
 
 		// Initialiser les repositories et services nécessaires
 		linkRepo := repository.NewLinkRepository(db)
-		linkService := services.NewLinkService(linkRepo, cfg)
+		linkService := services.NewLinkService(linkRepo)
 
 		// Appeler le LinkService et la fonction CreateLink pour créer le lien court
 		link, err := linkService.CreateLink(longURLFlag)
@@ -67,9 +67,9 @@ Exemple:
 			os.Exit(1)
 		}
 
-		fullShortURL := fmt.Sprintf("%s/%s", cfg.Server.BaseURL, link.ShortCode)
+		fullShortURL := fmt.Sprintf("%s/%s", cfg.Server.BaseURL, link.Shortcode)
 		fmt.Printf("URL courte créée avec succès:\n")
-		fmt.Printf("Code: %s\n", link.ShortCode)
+		fmt.Printf("Code: %s\n", link.Shortcode)
 		fmt.Printf("URL complète: %s\n", fullShortURL)
 	},
 }

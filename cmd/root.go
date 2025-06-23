@@ -61,7 +61,7 @@ func init() {
 // grâce à `cobra.OnInitialize(initConfig)`.
 func initConfig() {
 	var err error
-	Cfg, err = config.Load() // Correction: utiliser config.Load() au lieu de config.LoadConfig()
+	Cfg, err = config.LoadConfig()
 	if err != nil {
 		// Loggue l'erreur mais ne fait pas un os.Exit(1) ici si Load()
 		// gère déjà l'absence de fichier avec des valeurs par défaut.
