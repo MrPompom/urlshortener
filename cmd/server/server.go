@@ -21,6 +21,7 @@ import (
 // RunServerCmd représente la commande 'run-server' de Cobra.
 // C'est le point d'entrée pour lancer le serveur de l'application.
 var DB *gorm.DB
+var linkRepo *GormLinkRepository
 
 var RunServerCmd = &cobra.Command{
 	Use:   "run-server",
@@ -67,8 +68,8 @@ var RunServerCmd = &cobra.Command{
 		// TODO : Initialiser et lancer le moniteur d'URLs.
 		// Utilisez l'intervalle configuré (cfg.Monitor.IntervalMinutes).
 		// Lancez le moniteur dans sa propre goroutine.
-		monitorInterval := time.Duration(XXX) * time.Minute
-		urlMonitor := monitor.NewUrlMonitor() // Le moniteur a besoin du linkRepo et de l'interval
+		monitorInterval := time.Duration(cmd.Cfg.Monitor.IntervalMinutes) * time.Minute
+		urlMonitor := monitor.NewUrlMonitor(linkRepo, monitorInterval) // Le moniteur a besoin du linkRepo et de l'interval
 		go urlMonitor.Start()
 		log.Printf("Moniteur d'URLs démarré avec un intervalle de %v.", monitorInterval)
 
@@ -79,7 +80,7 @@ var RunServerCmd = &cobra.Command{
 		log.Println("Routes API configurées.")
 
 		// Créer le serveur HTTP Gin
-		serverAddr := fmt.Sprintf(":%d", cfg.Server.Port)
+		serverAddr := fmt.Sprintf(":%d", cmd.Cfg.Server.Port)
 		srv := &http.Server{
 			Addr:    serverAddr,
 			Handler: router,
