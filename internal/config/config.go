@@ -1,43 +1,57 @@
 package config
 
 import (
-	"fmt"
+	"errors"
 	"log" // Pour logger les informations ou erreurs de chargement de config
 
 	"github.com/spf13/viper" // La bibliothèque pour la gestion de configuration
 )
 
-// TODO Créer Config qui est la structure principale qui mappe l'intégralité de la configuration de l'application.
-// Les tags `mapstructure` sont utilisés par Viper pour mapper les clés du fichier de config
-// (ou des variables d'environnement) aux champs de la structure Go.
 type Config struct {
+	Server struct {
+		Port int
+	} `mapstructure:"server"`
+	Database struct {
+		Name string `mapstructure:"name"`
+	} `mapstructure:"database"`
+	Analytics struct {
+		BufferSize int `mapstructure:"buffer_size"`
+	} `mapstructure:"analytics"`
+	Monitor struct {
+		IntervalMinutes int `mapstructure:"interval_minutes"`
+	} `mapstructure:"monitor"`
 }
 
-// LoadConfig charge la configuration de l'application en utilisant Viper.
-// Elle recherche un fichier 'config.yaml' dans le dossier 'configs/'.
-// Elle définit également des valeurs par défaut si le fichier de config est absent ou incomplet.
 func LoadConfig() (*Config, error) {
-	// TODO Spécifie le chemin où Viper doit chercher les fichiers de config.
-	// on cherche dans le dossier 'configs' relatif au répertoire d'exécution.
 
-	// TODO Spécifie le nom du fichier de config (sans l'extension).
-
-	// TODO Spécifie le type de fichier de config.
-	viper.SetConfigType("yaml")
-
-	// TODO : Définir les valeurs par défaut pour toutes les options de configuration.
-	// Ces valeurs seront utilisées si les clés correspondantes ne sont pas trouvées dans le fichier de config
-	// ou si le fichier n'existe pas.
-	// server.port, server.base_url etc.
-
-	// TODO : Lire le fichier de configuration.
-
-	// TODO 4: Démapper (unmarshal) la configuration lue (ou les valeurs par défaut) dans la structure Config.
 	var cfg Config
 
-	// Log  pour vérifier la config chargée
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("./config")
+	viper.SetConfigType("yaml")
+
+	viper.SetDefault("server.port", 8080)
+	viper.SetDefault("server.base_url", "http://localhost:8080")
+	viper.SetDefault("database.name", "default_db")
+	viper.SetDefault("analytics.buffer_size", 100)
+	viper.SetDefault("monitor.interval_minutes", 5)
+
+	if err := viper.ReadInConfig(); err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if errors.As(err, &configFileNotFoundError) {
+			log.Println("Fichier de configuration 'config.yaml' non trouvé, utilisation des valeurs par défaut ou des variables d'environnement.")
+		}
+	} else {
+		log.Println("Fichier de configuration 'config.yaml' chargé avec succès.")
+	}
+
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("Impossible de désérialiser la configuration: %v", err)
+	}
+
 	log.Printf("Configuration loaded: Server Port=%d, DB Name=%s, Analytics Buffer=%d, Monitor Interval=%dmin",
 		cfg.Server.Port, cfg.Database.Name, cfg.Analytics.BufferSize, cfg.Monitor.IntervalMinutes)
 
-	return &cfg, nil // Retourne la configuration chargée
+	return &cfg, nil
 }

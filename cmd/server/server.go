@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,17 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	cmd2 "github.com/axellelanca/urlshortener/cmd"
-	"github.com/axellelanca/urlshortener/internal/api"
-	"github.com/axellelanca/urlshortener/internal/models"
+	"github.com/axellelanca/urlshortener/cmd"
 	"github.com/axellelanca/urlshortener/internal/monitor"
-	"github.com/axellelanca/urlshortener/internal/repository"
-	"github.com/axellelanca/urlshortener/internal/services"
-	"github.com/axellelanca/urlshortener/internal/workers"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/cobra"
-	"gorm.io/driver/sqlite" // Driver SQLite pour GORM
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	"github.com/spf13/cobra"
+	// Driver SQLite pour GORM
 )
 
 // RunServerCmd représente la commande 'run-server' de Cobra.
@@ -29,14 +24,24 @@ var RunServerCmd = &cobra.Command{
 	Use:   "run-server",
 	Short: "Lance le serveur API de raccourcissement d'URLs et les processus de fond.",
 	Long: `Cette commande initialise la base de données, configure les APIs,
-démarre les workers asynchrones pour les clics et le moniteur d'URLs,
-puis lance le serveur HTTP.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO : Charger la configuration chargée globalement via cmd.cfg
-		// Ne pas oublier la gestion d'erreur (si nil ?), si erreur, faire un log.Fataf
+	démarre les workers asynchrones pour les clics et le moniteur d'URLs,
+	puis lance le serveur HTTP.`,
+	Run: func(cobraCmd *cobra.Command, args []string) {
+		if cmd.Cfg == nil {
+			log.Fatalf("Configuration non chargée.")
+		}
 
-		// TODO : Initialiser la connexion à la base de données SQLite avec GORM.
-		// Utilisez le nom de la base de données depuis la configuration (cfg.Database.Name).
+		var DB *gorm.DB
+		var err error
+
+		log.Printf("Tentative de connexion à la base de données : %s", cmd.Cfg.Database.Name)
+
+		DB, err = gorm.Open(sqlite.Open(cmd.Cfg.Database.Name), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Échec de la connexion à la base de données '%s': %v", cmd.Cfg.Database.Name, err)
+		}
+
+		log.Println("Connexion à la base de données SQLite réussie !")
 
 		// TODO : Initialiser les repositories.
 		// Créez des instances de GormLinkRepository et GormClickRepository.
@@ -100,5 +105,5 @@ puis lance le serveur HTTP.`,
 }
 
 func init() {
-	// TODO : ajouter la commande
+	cmd.RootCmd.AddCommand(RunServerCmd)
 }
