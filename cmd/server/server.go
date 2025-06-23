@@ -10,7 +10,11 @@ import (
 	"time"
 
 	"github.com/axellelanca/urlshortener/cmd"
+	"github.com/axellelanca/urlshortener/internal/api"
 	"github.com/axellelanca/urlshortener/internal/monitor"
+	"github.com/axellelanca/urlshortener/internal/repository"
+	"github.com/axellelanca/urlshortener/internal/services"
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -20,6 +24,9 @@ import (
 
 // RunServerCmd représente la commande 'run-server' de Cobra.
 // C'est le point d'entrée pour lancer le serveur de l'application.
+var DB *gorm.DB
+var linkRepo *repository.GormLinkRepository
+
 var RunServerCmd = &cobra.Command{
 	Use:   "run-server",
 	Short: "Lance le serveur API de raccourcissement d'URLs et les processus de fond.",
@@ -31,7 +38,6 @@ var RunServerCmd = &cobra.Command{
 			log.Fatalf("Configuration non chargée.")
 		}
 
-		var DB *gorm.DB
 		var err error
 
 		log.Printf("Tentative de connexion à la base de données : %s", cmd.Cfg.Database.Name)
@@ -45,14 +51,16 @@ var RunServerCmd = &cobra.Command{
 
 		// TODO : Initialiser les repositories.
 		// Créez des instances de GormLinkRepository et GormClickRepository.
-
+		linkRepo := repository.NewLinkRepository(DB)
+		clickRepo := repository.NewClickRepository(DB)
 		// Laissez le log
 		log.Println("Repositories initialisés.")
 
 		// TODO : Initialiser les services métiers.
 		// Créez des instances de LinkService et ClickService, en leur passant les repositories nécessaires.
-
 		// Laissez le log
+		linkService := services.NewLinkService(linkRepo)
+		clickService := services.NewClickService(clickRepo)
 		log.Println("Services métiers initialisés.")
 
 		// TODO : Initialiser le channel ClickEventsChannel (api/handlers) des événements de clic et lancer les workers (StartClickWorkers).
@@ -66,26 +74,32 @@ var RunServerCmd = &cobra.Command{
 		// TODO : Initialiser et lancer le moniteur d'URLs.
 		// Utilisez l'intervalle configuré (cfg.Monitor.IntervalMinutes).
 		// Lancez le moniteur dans sa propre goroutine.
-		monitorInterval := time.Duration(XXX) * time.Minute
-		urlMonitor := monitor.NewUrlMonitor() // Le moniteur a besoin du linkRepo et de l'interval
+		monitorInterval := time.Duration(cmd.Cfg.Monitor.IntervalMinutes) * time.Minute
+		urlMonitor := monitor.NewUrlMonitor(linkRepo, monitorInterval) // Le moniteur a besoin du linkRepo et de l'interval
 		go urlMonitor.Start()
 		log.Printf("Moniteur d'URLs démarré avec un intervalle de %v.", monitorInterval)
 
 		// TODO : Configurer le routeur Gin et les handlers API.
 		// Passez les services nécessaires aux fonctions de configuration des routes.
-
 		// Pas toucher au log
+		router := gin.Default()
+		api.SetupRoutes(router, linkService)
 		log.Println("Routes API configurées.")
 
 		// Créer le serveur HTTP Gin
-		serverAddr := fmt.Sprintf(":%d", cfg.Server.Port)
+		port := fmt.Sprintf(":%d", cmd.Cfg.Server.Port)
 		srv := &http.Server{
-			Addr:    serverAddr,
+			Addr:    port,
 			Handler: router,
 		}
 
-		// TODO : Démarrer le serveur Gin dans une goroutine anonyme pour ne pas bloquer.
-		// Pensez à logger des ptites informations...
+		// Démarrer le serveur Gin dans une goroutine anonyme pour ne pas bloquer.
+		log.Printf("Démarrage du serveur sur %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Erreur lors du démarrage du serveur: %v", err)
+		}
+
+		log.Printf("Serveur démarré sur le port %s", port)
 
 		// Gére l'arrêt propre du serveur (graceful shutdown).
 		// Créez un channel pour les signaux OS (SIGINT, SIGTERM).

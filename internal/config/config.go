@@ -9,7 +9,8 @@ import (
 
 type Config struct {
 	Server struct {
-		Port int
+		Port    int
+		BaseURL string
 	} `mapstructure:"server"`
 	Database struct {
 		Name string `mapstructure:"name"`
